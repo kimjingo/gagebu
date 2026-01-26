@@ -25,11 +25,16 @@ app.use(cors({
 }));
 
 // GitHub webhook needs raw body for signature verification
-// Capture raw body before JSON parsing
-app.use('/webhook/github', express.raw({ type: 'application/json' }));
-
-// Parse JSON for all other routes
-app.use(express.json());
+// Parse JSON for all routes EXCEPT webhook
+app.use((req, res, next) => {
+    if (req.path === '/webhook/github') {
+        // Use raw body parser for webhook
+        express.raw({ type: 'application/json' })(req, res, next);
+    } else {
+        // Use JSON parser for all other routes
+        express.json()(req, res, next);
+    }
+});
 
 // Session configuration
 app.use(session({
