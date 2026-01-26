@@ -23,6 +23,12 @@ app.use(cors({
     origin: `http://localhost:${PORT}`,
     credentials: true
 }));
+
+// GitHub webhook needs raw body for signature verification
+// Capture raw body before JSON parsing
+app.use('/webhook/github', express.raw({ type: 'application/json' }));
+
+// Parse JSON for all other routes
 app.use(express.json());
 
 // Session configuration
@@ -222,16 +228,19 @@ app.post('/api/auth/change-password', requireAuth, async (req, res) => {
 });
 
 // GitHub Webhook endpoint for auto-deployment
-app.post('/webhook/github', express.raw({ type: 'application/json' }), async (req, res) => {
+app.post('/webhook/github', async (req, res) => {
     try {
         const signature = req.headers['x-hub-signature-256'];
         const event = req.headers['x-github-event'];
         const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 
+        // req.body is a Buffer (raw body) because of express.raw() middleware
+        const rawBody = req.body;
+
         // If webhook secret is configured, verify signature
         if (webhookSecret) {
             const isValid = deployModule.verifyGitHubSignature(
-                req.body,
+                rawBody,
                 signature,
                 webhookSecret
             );
@@ -245,7 +254,7 @@ app.post('/webhook/github', express.raw({ type: 'application/json' }), async (re
         }
 
         // Parse the JSON payload
-        const payload = JSON.parse(req.body.toString());
+        const payload = JSON.parse(rawBody.toString());
 
         // Handle the webhook event
         const result = await deployModule.handleWebhook(event, payload);
