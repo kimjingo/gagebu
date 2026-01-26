@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Household Account Book</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Household Account Book</h1>
+            <nav>
+                <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+                <button class="nav-btn" data-view="transactions">Transactions</button>
+                <button class="nav-btn" data-view="categories">Categories</button>
+                <button class="nav-btn" data-view="budgets">Budgets</button>
+                <button class="nav-btn" data-view="reports">Reports</button>
+            </nav>
+            <div class="user-section">
+                <span class="username-display" id="username-display"></span>
+                <button class="btn-logout" id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view active">
+                <div class="dashboard-cards">
+                    <div class="card balance-card">
+                        <h3>Current Balance</h3>
+                        <div class="balance-amount" id="current-balance">$0.00</div>
+                    </div>
+                    <div class="card income-card">
+                        <h3>Total Income</h3>
+                        <div class="amount income" id="total-income">$0.00</div>
+                    </div>
+                    <div class="card expense-card">
+                        <h3>Total Expenses</h3>
+                        <div class="amount expense" id="total-expenses">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Quick Add Transaction</h3>
+                    <form id="quick-transaction-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="quick-type" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="number" id="quick-amount" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="quick-category" required></select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="quick-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input type="text" id="quick-description">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Transaction</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Recent Transactions</h3>
+                    <div id="recent-transactions"></div>
+                </div>
+            </div>
+
+            <!-- Transactions View -->
+            <div id="transactions-view" class="view">
+                <div class="card">
+                    <h3>Add Transaction</h3>
+                    <form id="transaction-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="trans-type" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="number" id="trans-amount" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="trans-category" required></select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="trans-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input type="text" id="trans-description">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Transaction</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Bulk Upload Transactions</h3>
+                    <p class="info-text">
+                        Upload CSV files from your bank or credit card statements. The system will automatically categorize transactions based on descriptions.
+                        <br>Supports: Bank statements (Debit/Credit columns) and simple format. <a href="/api/transactions/template" download>Download simple template</a>
+                    </p>
+                    <div class="bulk-upload-section">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="upload-source">Source / Account *</label>
+                            <select id="upload-source" required>
+                                <option value="">-- Select Source --</option>
+                                <option value="Hanmi Bank">Hanmi Bank</option>
+                                <option value="Bank of America">Bank of America</option>
+                                <option value="Credit Card - Citi">Credit Card - Citi</option>
+                                <option value="Credit Card - Chase">Credit Card - Chase</option>
+                                <option value="Credit Card - Amex">Credit Card - Amex</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="upload-area" id="upload-area">
+                            <input type="file" id="csv-file" accept=".csv" style="display: none;">
+                            <div class="upload-content">
+                                <div class="upload-icon">📁</div>
+                                <p>Click to select CSV file or drag and drop</p>
+                                <p class="upload-hint">Required columns: date, type, category, amount, description (optional)</p>
+                            </div>
+                        </div>
+                        <button id="upload-btn" class="btn btn-primary" style="margin-top: 15px;" disabled>Upload Transactions</button>
+                    </div>
+                    <div id="upload-results"></div>
+                </div>
+
+                <div class="card">
+                    <h3>All Transactions</h3>
+                    <div class="filters">
+                        <input type="date" id="filter-start-date" placeholder="Start Date">
+                        <input type="date" id="filter-end-date" placeholder="End Date">
+                        <select id="filter-source">
+                            <option value="">All Sources</option>
+                        </select>
+                        <button id="apply-filter" class="btn">Apply Filter</button>
+                        <button id="clear-filter" class="btn">Clear</button>
+                    </div>
+                    <div id="transactions-list"></div>
+                </div>
+            </div>
+
+            <!-- Categories View -->
+            <div id="categories-view" class="view">
+                <div class="card">
+                    <h3>Add Category</h3>
+                    <form id="category-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" id="cat-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="cat-type" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Color</label>
+                                <input type="color" id="cat-color" value="#6b7280" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Category</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Manage Categories</h3>
+                    <div id="categories-list"></div>
+                </div>
+            </div>
+
+            <!-- Budgets View -->
+            <div id="budgets-view" class="view">
+                <div class="card">
+                    <h3>Set Budget</h3>
+                    <form id="budget-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Month</label>
+                                <input type="month" id="budget-month" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category (Expense only)</label>
+                                <select id="budget-category" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Budget Amount</label>
+                                <input type="number" id="budget-amount" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Set Budget</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Budget Status</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Select Month</label>
+                            <input type="month" id="budget-status-month">
+                        </div>
+                        <button id="load-budget-status" class="btn">Load Status</button>
+                    </div>
+                    <div id="budget-status"></div>
+                </div>
+            </div>
+
+            <!-- Reports View -->
+            <div id="reports-view" class="view">
+                <div class="card">
+                    <h3>Monthly Report</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Select Month</label>
+                            <input type="month" id="report-month">
+                        </div>
+                        <button id="load-report" class="btn">Load Report</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Monthly Summary</h3>
+                    <div id="monthly-summary" class="summary-stats">
+                        <div class="stat">
+                            <span class="label">Income:</span>
+                            <span class="value income" id="report-income">$0.00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Expenses:</span>
+                            <span class="value expense" id="report-expenses">$0.00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Balance:</span>
+                            <span class="value" id="report-balance">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="card chart-card">
+                        <h3>Expenses by Category</h3>
+                        <canvas id="expense-chart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3>Income by Category</h3>
+                        <canvas id="income-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Edit Transaction</h3>
+            <form id="edit-transaction-form">
+                <input type="hidden" id="edit-trans-id">
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="edit-trans-type" required>
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="edit-trans-amount" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="edit-trans-category" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="edit-trans-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="edit-trans-description">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Transaction</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

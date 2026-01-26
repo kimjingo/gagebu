@@ -1,0 +1,29 @@
+# Environment variables
+.env
+
+# Node modules
+node_modules/
+
+# Database
+*.db
+
+# Uploads
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Task outputs
+.claude/

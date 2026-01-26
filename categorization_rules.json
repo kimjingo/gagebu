@@ -1,0 +1,43 @@
+{
+  "income_keywords": {
+    "Salary": ["PAYROLL", "GLOBALFAS"],
+    "Freelance": ["ZELLE FROM", "KREASSIVE", "FOODOT"],
+    "Investment": ["ROBINHOOD CREDITS", "DIVIDEND"],
+    "Other Income": ["DEPOSIT", "MOBILE DEPOSIT", "TAX REF", "CASTTAXRFD", "COSTCO CASH REWARD", "VENMO CASHOUT", "PAYPAL TRANSFER", "AUTOPAY", "AUTO-PMT", "PAYMENT THANK YOU", "CREDIT", "HANMI BANK", "ZELLE"]
+  },
+  "expense_keywords": {
+    "Food": [
+      "RESTAURANT", "JOKBAL", "YANG BAN", "LUNG TANG", "TRADER JOE", "WHOLE FOODS",
+      "SAFEWAY", "RALPHS", "VONS", "PAVILIONS", "ALBERTSONS", "KROGER",
+      "RESTAURANT DEPOT", "YOGURTLAND", "FIOR DITALIA", "DINING"
+    ],
+    "Transport": [
+      "GAS", "FUEL", "COSTCO GAS", "SHELL", "CHEVRON", "ARCO", "76",
+      "PARKING", "PRKG", "METER", "UBER", "LYFT", "TAXI",
+      "TESLA INSURANCE", "CAR INSURANCE", "AUTO INSURANCE"
+    ],
+    "Utilities": [
+      "SO CAL EDISON", "SCGC", "SoCalGas", "T-MOBILE", "VERIZON", "ATT", "AT&T",
+      "INTERNET", "SPECTRUM", "COMCAST", "XFINITY", "WATER", "ELECTRIC", "GAS COMPANY"
+    ],
+    "Entertainment": [
+      "NETFLIX", "SPOTIFY", "HULU", "DISNEY", "HBO", "APPLE.COM/BILL", "GOOGLE *YouTube",
+      "MOVIE", "THEATER", "CINEMA", "OLYMPUS BOARD"
+    ],
+    "Shopping": [
+      "AMAZON", "AMZN", "TARGET", "WALMART", "COSTCO WHSE", "TJX", "NORDSTROM",
+      "MARSHALLS", "ROSS", "HOMEGOODS", "BED BATH"
+    ],
+    "Healthcare": [
+      "PHARMACY", "CVS", "WALGREENS", "RITE AID", "MEDICAL", "HOSPITAL", "DOCTOR",
+      "DENTAL", "CLINIC", "HEALTH", "TORRANCE MEMORIAL", "PHYSICI"
+    ],
+    "Education": ["TUITION", "SCHOOL", "COLLEGE", "UNIVERSITY", "BOOKS", "COURSE"],
+    "Other Expense": [
+      "CITI AUTOPAY", "CITI CARD", "ROBINHOOD DEBITS", "SANTANDER", "CHASE CREDIT",
+      "CHECK NUMBER", "VENMO PAYMENT", "ZELLE TO", "ATM", "WITHDRAWAL", "WITHDRWL",
+      "DMV", "CITY OF TORRANCE", "KOR MISSION", "PAYPAL", "SQUARE", "STRIPE",
+      "BKOFAMERICA ATM", "BKOFAMERICA BC", "BESTONLINE"
+    ]
+  }
+}
