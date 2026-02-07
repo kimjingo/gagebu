@@ -19,8 +19,14 @@ const PORT = process.env.PORT || 3000;
 const upload = multer({ dest: 'uploads/' });
 
 // Middleware
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction) {
+    app.set('trust proxy', 1);
+}
+
 app.use(cors({
-    origin: `http://localhost:${PORT}`,
+    origin: isProduction ? 'https://household.bequzz.com' : `http://localhost:${PORT}`,
     credentials: true
 }));
 
@@ -42,7 +48,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false, // set to true if using HTTPS
+        secure: isProduction,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
