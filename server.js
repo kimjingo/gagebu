@@ -248,6 +248,16 @@ app.post('/webhook/github', async (req, res) => {
         // req.body is a Buffer (raw body) because of express.raw() middleware
         const rawBody = req.body;
 
+        // Debug logging for webhook troubleshooting
+        console.log('🔍 Webhook debug:', {
+            hasSignature: !!signature,
+            hasSecret: !!webhookSecret,
+            bodyType: typeof rawBody,
+            isBuffer: Buffer.isBuffer(rawBody),
+            bodyLength: rawBody ? rawBody.length : 0,
+            contentType: req.headers['content-type'],
+        });
+
         // If webhook secret is configured, verify signature
         if (webhookSecret) {
             const isValid = deployModule.verifyGitHubSignature(
@@ -258,6 +268,7 @@ app.post('/webhook/github', async (req, res) => {
 
             if (!isValid) {
                 console.error('❌ Invalid webhook signature');
+                console.error('   Received signature:', signature);
                 return res.status(401).json({ error: 'Invalid signature' });
             }
         } else {

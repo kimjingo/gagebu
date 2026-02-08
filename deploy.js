@@ -12,13 +12,20 @@ function verifyGitHubSignature(payload, signature, secret) {
         return false;
     }
 
+    // Ensure payload is a string or Buffer for correct HMAC computation
+    const body = Buffer.isBuffer(payload) ? payload : String(payload);
     const hmac = crypto.createHmac('sha256', secret);
-    const digest = 'sha256=' + hmac.update(payload).digest('hex');
+    const digest = 'sha256=' + hmac.update(body).digest('hex');
 
-    return crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(digest)
-    );
+    const sigBuffer = Buffer.from(signature);
+    const digestBuffer = Buffer.from(digest);
+
+    // timingSafeEqual throws if lengths differ
+    if (sigBuffer.length !== digestBuffer.length) {
+        return false;
+    }
+
+    return crypto.timingSafeEqual(sigBuffer, digestBuffer);
 }
 
 /**
