@@ -39,13 +39,14 @@ app.use(
   }),
 );
 
-// JSON body parser - skip webhook route (needs raw body for signature verification)
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path === '/webhook/github') {
-    return next();
-  }
-  express.json()(req, res, next);
-});
+// JSON body parser with raw body capture for webhook signature verification
+app.use(
+  express.json({
+    verify: (req: any, _res, buf: Buffer) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 
 // Session configuration
 app.use(
@@ -299,10 +300,7 @@ app.post(
 );
 
 // GitHub Webhook endpoint for auto-deployment
-app.post(
-  '/webhook/github',
-  express.raw({ type: 'application/json' }),
-  async (req: Request, res: Response) => {
+app.post('/webhook/github', async (req: Request, res: Response) => {
   try {
     const signature = req.headers['x-hub-signature-256'] as
       | string
@@ -310,26 +308,25 @@ app.post(
     const event = req.headers['x-github-event'] as string | undefined;
     const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 
-    // Get raw body as Buffer for signature verification
-    let rawBody: Buffer;
-    if (Buffer.isBuffer(req.body)) {
-      rawBody = req.body;
-    } else if (req.body && typeof req.body === 'object') {
-      rawBody = Buffer.from(JSON.stringify(req.body));
-    } else {
-      rawBody = Buffer.from(req.body || '');
-    }
+    // rawBody is captured by express.json verify callback
+    const rawBody: Buffer = (req as any).rawBody;
 
     console.log('🔍 Webhook debug:', {
       hasSignature: !!signature,
       hasSecret: !!webhookSecret,
-      isBuffer: Buffer.isBuffer(req.body),
-      bodyLength: rawBody.length,
+      hasRawBody: !!rawBody,
+      rawBodyLength: rawBody ? rawBody.length : 0,
       contentType: req.headers['content-type'],
     });
 
     // If webhook secret is configured, verify signature
     if (webhookSecret) {
+      if (!rawBody) {
+        console.error('❌ No raw body available for signature verification');
+        res.status(400).json({ error: 'No body received' });
+        return;
+      }
+
       const isValid = deployModule.verifyGitHubSignature(
         rawBody,
         signature,
@@ -347,10 +344,8 @@ app.post(
       );
     }
 
-    // Parse the JSON payload
-    const payload = Buffer.isBuffer(req.body)
-      ? JSON.parse(rawBody.toString())
-      : req.body;
+    // req.body is already parsed as JSON by express.json()
+    const payload = req.body;
 
     // Handle the webhook event
     const result = await deployModule.handleWebhook(event, payload);
@@ -365,8 +360,7 @@ app.post(
       timestamp: new Date().toISOString(),
     });
   }
-},
-);
+});
 
 // Manual deployment endpoint (requires authentication)
 app.post(
