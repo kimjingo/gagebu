@@ -30,9 +30,13 @@ app.use(cors({
     credentials: true
 }));
 
-// JSON body parser for all routes (webhook uses route-level raw parser instead)
-app.use('/webhook/github', express.raw({ type: 'application/json' }));
-app.use(express.json());
+// JSON body parser - skip webhook route (needs raw body for signature verification)
+app.use((req, res, next) => {
+    if (req.path === '/webhook/github') {
+        return next();
+    }
+    express.json()(req, res, next);
+});
 
 // Session configuration
 app.use(session({
@@ -231,22 +235,29 @@ app.post('/api/auth/change-password', requireAuth, async (req, res) => {
 });
 
 // GitHub Webhook endpoint for auto-deployment
-app.post('/webhook/github', async (req, res) => {
+// express.raw() is inline route middleware to guarantee raw Buffer body
+app.post('/webhook/github', express.raw({ type: 'application/json' }), async (req, res) => {
     try {
         const signature = req.headers['x-hub-signature-256'];
         const event = req.headers['x-github-event'];
         const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 
-        // req.body is a Buffer (raw body) because of express.raw() middleware
-        const rawBody = req.body;
+        // Get raw body as Buffer for signature verification
+        let rawBody;
+        if (Buffer.isBuffer(req.body)) {
+            rawBody = req.body;
+        } else if (req.body && typeof req.body === 'object') {
+            // Fallback: body was already parsed as JSON by another middleware
+            rawBody = Buffer.from(JSON.stringify(req.body));
+        } else {
+            rawBody = Buffer.from(req.body || '');
+        }
 
-        // Debug logging for webhook troubleshooting
         console.log('🔍 Webhook debug:', {
             hasSignature: !!signature,
             hasSecret: !!webhookSecret,
-            bodyType: typeof rawBody,
-            isBuffer: Buffer.isBuffer(rawBody),
-            bodyLength: rawBody ? rawBody.length : 0,
+            isBuffer: Buffer.isBuffer(req.body),
+            bodyLength: rawBody.length,
             contentType: req.headers['content-type'],
         });
 
@@ -260,7 +271,6 @@ app.post('/webhook/github', async (req, res) => {
 
             if (!isValid) {
                 console.error('❌ Invalid webhook signature');
-                console.error('   Received signature:', signature);
                 return res.status(401).json({ error: 'Invalid signature' });
             }
         } else {
@@ -268,7 +278,7 @@ app.post('/webhook/github', async (req, res) => {
         }
 
         // Parse the JSON payload
-        const payload = JSON.parse(rawBody.toString());
+        const payload = Buffer.isBuffer(req.body) ? JSON.parse(rawBody.toString()) : req.body;
 
         // Handle the webhook event
         const result = await deployModule.handleWebhook(event, payload);
