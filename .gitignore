@@ -55,6 +55,9 @@ Thumbs.db
 dist/
 build/
 
+# TypeScript
+*.tsbuildinfo
+
 # Task outputs
 .claude/
 

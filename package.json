@@ -2,11 +2,12 @@
   "name": "household-accounting",
   "version": "1.0.0",
   "description": "Web application for household income and expense tracking",
-  "main": "server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "seed": "node seed.js"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "seed": "ts-node src/seed.ts"
   },
   "keywords": ["accounting", "budget", "finance"],
   "author": "",
@@ -21,5 +22,17 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.0.0",
+    "@types/express": "^4.17.0",
+    "@types/cors": "^2.8.0",
+    "@types/multer": "^1.4.0",
+    "@types/bcrypt": "^5.0.0",
+    "@types/express-session": "^1.18.0",
+    "@types/passport": "^1.0.0",
+    "@types/passport-google-oauth20": "^2.0.0"
   }
 }
